@@ -1,0 +1,15 @@
+{
+  "name": "nanostat",
+  "version": "0.0.1",
+  "description": "fs.stat() with nanosecond precision",
+  "repository": {
+    "type": "git":,
+    "url": "http://github.com/josepharhar/nanostat"
+  },
+  "author": {
+    "name": "Joseph Arhar",
+    "email": "josepharhar@gmail.com",
+    "url": "https://github.com/josepharhar"
+  },
+  "homepage": "https://github.com/josepharhar/nanostat"
+}
