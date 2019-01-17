@@ -1,9 +1,10 @@
 {
   "name": "nanostat",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "fs.stat() with nanosecond precision",
+  "main": "index.js",
   "repository": {
-    "type": "git":,
+    "type": "git",
     "url": "http://github.com/josepharhar/nanostat"
   },
   "author": {
