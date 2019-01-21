@@ -12,7 +12,10 @@ static uint64_t toMs(uint64_t sec, uint64_t nsec) {
   return (sec * 1000) + ((nsec / 1000000) % 1000);
 }
 
-static void statSync(const v8::FunctionCallbackInfo<v8::Value>& args) {
+template <typename StatFn>
+static void statInternal(
+    const v8::FunctionCallbackInfo<v8::Value>& args) {
+
   v8::Isolate* isolate = args.GetIsolate();
 
   if (args.Length() < 1) {
@@ -34,10 +37,11 @@ static void statSync(const v8::FunctionCallbackInfo<v8::Value>& args) {
 
   struct stat stat_struct;
   memset(&stat_struct, 0, sizeof(struct stat));
-  if (stat(char_filepath, &stat_struct)) {
+  if (StatFn(char_filepath, &stat_struct)) {
     std::string error_string =
       std::string("stat() failed. errno: ") + std::string(strerror(errno));
-    args.GetReturnValue().Set(NEW_STRING(error_string.c_str()));
+    isolate->ThrowException(NEW_STRING(error_string.c_str()));
+    //args.GetReturnValue().Set(NEW_STRING(error_string.c_str()));
     return;
   }
 
@@ -108,8 +112,8 @@ static void statSync(const v8::FunctionCallbackInfo<v8::Value>& args) {
 }
 
 void Initialize(v8::Local<v8::Object> exports) {
-  //NODE_SET_METHOD(exports, "hello", Method);
-  NODE_SET_METHOD(exports, "statSync", statSync);
+  NODE_SET_METHOD(exports, "statSync", statInternal<stat>);
+  NODE_SET_METHOD(exports, "lstatSync", statInternal<lstat>);
 }
 
 NODE_MODULE(NODE_GYP_MODULE_NAME, Initialize);
