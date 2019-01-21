@@ -8,6 +8,10 @@
   v8::String::NewFromUtf8(isolate, str, v8::NewStringType::kNormal) \
     .ToLocalChecked()
 
+static uint64_t toMs(uint64_t sec, uint64_t nsec) {
+  return (sec * 1000) + ((nsec / 1000000) % 1000);
+}
+
 static void statSync(const v8::FunctionCallbackInfo<v8::Value>& args) {
   v8::Isolate* isolate = args.GetIsolate();
 
@@ -39,28 +43,28 @@ static void statSync(const v8::FunctionCallbackInfo<v8::Value>& args) {
 
   v8::Local<v8::Object> stat_object = v8::Object::New(isolate);
 #ifdef __APPLE__
-  auto mtimeMs = stat_struct.st_mtimespec.tv_sec;
+  auto mtimeS = stat_struct.st_mtimespec.tv_sec;
   auto mtimeNs = stat_struct.st_mtimespec.tv_nsec;
-  auto atimeMs = stat_struct.st_atimespec.tv_sec;
+  auto atimeS = stat_struct.st_atimespec.tv_sec;
   auto atimeNs = stat_struct.st_atimespec.tv_nsec;
-  auto ctimeMs = stat_struct.st_ctimespec.tv_sec;
+  auto ctimeS = stat_struct.st_ctimespec.tv_sec;
   auto ctimeNs = stat_struct.st_ctimespec.tv_nsec;
-  auto birthtimeMs = stat_struct.st_birthtimespec.tv_sec;
+  auto birthtimeS = stat_struct.st_birthtimespec.tv_sec;
   auto birthtimeNs = stat_struct.st_birthtimespec.tv_nsec;
 #else  // __APPLE__
-  auto mtimeMs = stat_struct.st_mtim.tv_sec;
+  auto mtimeS = stat_struct.st_mtim.tv_sec;
   auto mtimeNs = stat_struct.st_mtim.tv_nsec;
-  auto atimeMs = stat_struct.st_atim.tv_sec;
+  auto atimeS = stat_struct.st_atim.tv_sec;
   auto atimeNs = stat_struct.st_atim.tv_nsec;
-  auto ctimeMs = stat_struct.st_ctim.tv_sec;
+  auto ctimeS = stat_struct.st_ctim.tv_sec;
   auto ctimeNs = stat_struct.st_ctim.tv_nsec;
-  auto birthtimeMs = stat_struct.st_ctim.tv_sec;
+  auto birthtimeS = stat_struct.st_ctim.tv_sec;
   auto birthtimeNs = stat_struct.st_ctim.tv_nsec;
 #endif  // __APPLE__
-  mtimeMs = (mtimeMs * 1000) + (mtimeNs / 1000);
-  atimeMs = (atimeMs * 1000) + (atimeNs / 1000);
-  ctimeMs = (ctimeMs * 1000) + (ctimeNs / 1000);
-  birthtimeMs = (birthtimeMs * 1000) + (birthtimeNs / 1000);
+  auto mtimeMs = toMs(mtimeS, mtimeNs);
+  auto atimeMs = toMs(atimeS, atimeNs);
+  auto ctimeMs = toMs(ctimeS, ctimeNs);
+  auto birthtimeMs = toMs(birthtimeS, birthtimeNs);
   stat_object->Set(NEW_STRING("mtimeMs"),
       v8::BigInt::New(isolate, mtimeMs));
   stat_object->Set(NEW_STRING("mtimeNs"),
