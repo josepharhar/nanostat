@@ -16,13 +16,16 @@ static void statSync(const v8::FunctionCallbackInfo<v8::Value>& args) {
     return;
   }
 
+  printf("1\n");
   if (!args[0]->IsString()) {
     args.GetReturnValue().Set(NEW_STRING("!args[0]->IsString()"));
     return;
   }
+  printf("2\n");
   v8::Local<v8::String> filepath = v8::Local<v8::String>::Cast(args[0]);
   v8::String::Utf8Value utf8_filepath(isolate, filepath);
   char* char_filepath = *utf8_filepath;
+  printf("3\n");
 
 #ifdef _WIN32
   // TODO
@@ -30,18 +33,25 @@ static void statSync(const v8::FunctionCallbackInfo<v8::Value>& args) {
 
   struct stat stat_struct;
   memset(&stat_struct, 0, sizeof(struct stat));
+  printf("4\n");
   if (stat(char_filepath, &stat_struct)) {
     std::string error_string =
       std::string("stat() failed. errno: ") + std::string(strerror(errno));
     args.GetReturnValue().Set(NEW_STRING(error_string.c_str()));
     return;
   }
+  printf("5\n");
 
   v8::Local<v8::Object> stat_object;
+  printf("6\n");
 #ifdef __APPLE__
-  stat_object->Set(NEW_STRING("mtimeNs"),
+  auto asdf = v8::BigInt::New(isolate, stat_struct.st_mtimespec.tv_nsec);
+  printf("6.5\n");
+  stat_object->Set(NEW_STRING("mtimeNs"), asdf);
+  /*stat_object->Set(NEW_STRING("mtimeNs"),
     v8::BigInt::New(isolate,
-      stat_struct.st_mtimespec.tv_nsec));
+      stat_struct.st_mtimespec.tv_nsec));*/
+  printf("7\n");
   stat_object->Set(NEW_STRING("mtimeMs"),
     v8::BigInt::New(isolate,
       stat_struct.st_mtimespec.tv_sec +
@@ -98,7 +108,9 @@ static void statSync(const v8::FunctionCallbackInfo<v8::Value>& args) {
       stat_struct.ctim.tv_nsec * 1000));
 #endif
   //stat_object->Set(NEW_STRING("mtimeMs"), asdf);
+  printf("98\n");
   args.GetReturnValue().Set(stat_object);
+  printf("99\n");
 #endif  // _WIN32
 }
 
