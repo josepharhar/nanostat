@@ -4,6 +4,10 @@
 #include <stdio.h>
 #include <sys/stat.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif  // _WIN32
+
 #define NEW_STRING(str) \
   v8::String::NewFromUtf8(isolate, str, v8::NewStringType::kNormal) \
     .ToLocalChecked()
@@ -33,6 +37,7 @@ static void statInternal(
 
 #ifdef _WIN32
   // TODO
+  GetFileAttributesEx();
 #else  // _WIN32
 
   struct stat stat_struct;
