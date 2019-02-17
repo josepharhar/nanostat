@@ -6,6 +6,9 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <time.h>
+#define stat _stat
+#define lstat _stat
 #endif  // _WIN32
 
 #define NEW_STRING(str) \
@@ -36,8 +39,68 @@ static void statInternal(
   char* char_filepath = *utf8_filepath;
 
 #ifdef _WIN32
-  // TODO
-  GetFileAttributesEx();
+  v8::Local<v8::Object> stat_object = v8::Object::New(isolate);
+
+  /*struct stat stat_struct;
+  memset(&stat_struct, 0, sizeof(struct stat));
+  int stat_retval = -1;
+  stat_retval = stat(char_filepath, &stat_struct);
+  if (stat_retval) {
+    std::string error_string =
+      std::string("stat() failed. errno: ") + std::string(strerror(errno));
+    isolate->ThrowException(v8::Exception::Error(
+        NEW_STRING(error_string.c_str())));
+    return;
+  }
+  auto mtime = stat_struct.st_mtime;
+  auto atime = stat_struct.st_atime;
+  auto ctime = stat_struct.st_ctime;
+  stat_object->Set(NEW_STRING("mtime"),
+      v8::BigInt::New(isolate, mtime));
+  stat_object->Set(NEW_STRING("atime"),
+      v8::BigInt::New(isolate, atime));
+  stat_object->Set(NEW_STRING("ctime"),
+      v8::BigInt::New(isolate, ctime));*/
+
+  WIN32_FILE_ATTRIBUTE_DATA file_info;
+  DWORD retval = GetFileAttributesEx(char_filepath, GetFileExInfoStandard, &file_info);
+  DWORD dwFileAttributes = file_info.dwFileAttributes;
+  FILETIME ftCreationTime = file_info.ftCreationTime;
+  FILETIME ftLastAccessTime = file_info.ftLastAccessTime;
+  FILETIME ftLastWriteTime = file_info.ftLastWriteTime;
+  DWORD nFileSizeHigh = file_info.nFileSizeHigh;
+  DWORD nFileSizeLow = file_info.nFileSizeLow;
+
+  auto seconds = ftLastAccessTime.dwHighDateTime;
+  auto nanoseconds = ftLastAccessTime.dwLowDateTime * 100;
+
+  stat_object->Set(NEW_STRING("mtimeLow"),
+      v8::BigInt::New(isolate, ftLastWriteTime.dwLowDateTime));
+  stat_object->Set(NEW_STRING("mtimeHigh"),
+      v8::BigInt::New(isolate, ftLastWriteTime.dwHighDateTime));
+  stat_object->Set(NEW_STRING("atimeLow"),
+      v8::BigInt::New(isolate, ftLastAccessTime.dwLowDateTime));
+  stat_object->Set(NEW_STRING("atimeHigh"),
+      v8::BigInt::New(isolate, ftLastAccessTime.dwHighDateTime));
+  stat_object->Set(NEW_STRING("ctimeLow"),
+      v8::BigInt::New(isolate, ftCreationTime.dwLowDateTime));
+  stat_object->Set(NEW_STRING("ctimeHigh"),
+      v8::BigInt::New(isolate, ftCreationTime.dwHighDateTime));
+
+  /*stat_object->Set(NEW_STRING("mtimeMs"),
+      v8::BigInt::New(isolate, mtimeMs));
+  stat_object->Set(NEW_STRING("mtimeNs"),
+      v8::BigInt::New(isolate, mtimeNs));
+  stat_object->Set(NEW_STRING("atimeMs"),
+      v8::BigInt::New(isolate, atimeMs));
+  stat_object->Set(NEW_STRING("atimeNs"),
+      v8::BigInt::New(isolate, atimeNs));
+  stat_object->Set(NEW_STRING("ctimeMs"),
+      v8::BigInt::New(isolate, ctimeMs));
+  stat_object->Set(NEW_STRING("ctimeNs"),
+      v8::BigInt::New(isolate, ctimeNs));*/
+
+  args.GetReturnValue().Set(stat_object);
 #else  // _WIN32
 
   struct stat stat_struct;
@@ -67,7 +130,16 @@ static void statInternal(
   auto ctimeNs = stat_struct.st_ctimespec.tv_nsec;
   auto birthtimeS = stat_struct.st_birthtimespec.tv_sec;
   auto birthtimeNs = stat_struct.st_birthtimespec.tv_nsec;
-#else  // __APPLE__
+//#elif _WIN32
+//  auto mtimeS = stat_struct.st_mtime.tv_sec;
+//  auto mtimeNs = stat_struct.st_mtime.tv_nsec;
+//  auto atimeS = stat_struct.st_atime.tv_sec;
+//  auto atimeNs = stat_struct.st_atime.tv_nsec;
+//  auto ctimeS = stat_struct.st_ctime.tv_sec;
+//  auto ctimeNs = stat_struct.st_ctime.tv_nsec;
+//  auto birthtimeS = stat_struct.st_ctime.tv_sec;
+//  auto birthtimeNs = stat_struct.st_ctime.tv_nsec;
+#else
   auto mtimeS = stat_struct.st_mtim.tv_sec;
   auto mtimeNs = stat_struct.st_mtim.tv_nsec;
   auto atimeS = stat_struct.st_atim.tv_sec;
