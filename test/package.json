@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "mtime": "node mtime.js"
+    "jstat": "node jstat.js"
   },
   "dependencies": {
     "nanostat": "file:.."

@@ -16,6 +16,24 @@
   v8::String::NewFromUtf8(isolate, str, v8::NewStringType::kNormal) \
     .ToLocalChecked()
 
+#ifdef _WIN32
+struct nanotime {
+  uint64_t tv_sec;
+  uint64_t tv_nsec;
+};
+struct nanotime ftToTimespec(FILETIME ft) {
+  ULARGE_INTEGER temp;
+  temp.HighPart = ft.dwHighDateTime;
+  temp.LowPart = ft.dwLowDateTime;
+  uint64_t hunnaNs = temp.QuadPart;
+
+  nanotime tv;
+  tv.tv_nsec = (hunnaNs * 100) % 1000000000;
+  tv.tv_sec = (hunnaNs / 10000000) - 11644473600;
+  return tv;
+}
+#endif  // _WIN32
+
 static uint64_t toMs(uint64_t sec, uint64_t nsec) {
   return (sec * 1000) + ((nsec / 1000000) % 1000);
 }
@@ -40,92 +58,31 @@ static void statInternal(
   char* char_filepath = *utf8_filepath;
 
 #ifdef _WIN32
-  v8::Local<v8::Object> stat_object = v8::Object::New(isolate);
-
-  /*struct stat stat_struct;
-  memset(&stat_struct, 0, sizeof(struct stat));
-  int stat_retval = -1;
-  stat_retval = stat(char_filepath, &stat_struct);
-  if (stat_retval) {
-    std::string error_string =
-      std::string("stat() failed. errno: ") + std::string(strerror(errno));
-    isolate->ThrowException(v8::Exception::Error(
-        NEW_STRING(error_string.c_str())));
-    return;
-  }
-  auto mtime = stat_struct.st_mtime;
-  auto atime = stat_struct.st_atime;
-  auto ctime = stat_struct.st_ctime;
-  stat_object->Set(NEW_STRING("mtime"),
-      v8::BigInt::New(isolate, mtime));
-  stat_object->Set(NEW_STRING("atime"),
-      v8::BigInt::New(isolate, atime));
-  stat_object->Set(NEW_STRING("ctime"),
-      v8::BigInt::New(isolate, ctime));*/
-
   WIN32_FILE_ATTRIBUTE_DATA file_info;
   DWORD retval = GetFileAttributesEx(char_filepath, GetFileExInfoStandard, &file_info);
-  DWORD dwFileAttributes = file_info.dwFileAttributes;
-  FILETIME ftCreationTime = file_info.ftCreationTime;
-  FILETIME ftLastAccessTime = file_info.ftLastAccessTime;
-  FILETIME ftLastWriteTime = file_info.ftLastWriteTime;
-  DWORD nFileSizeHigh = file_info.nFileSizeHigh;
-  DWORD nFileSizeLow = file_info.nFileSizeLow;
+  if (!retval) {
+    // TODO use GetLastError() to get an error string
+    // DWORD last_error = GetLastError();
+    isolate->ThrowException(v8::Exception::Error(
+          NEW_STRING("GetFileAttributesEx() failed")));
+    return;
+  }
 
-  /*LARGE_INTEGER date, adjust;
-  date.HighPart = ftLastWriteTime.dwHighDateTime;
-  date.LowPart = ftLastWriteTime.dwLowDateTime;
-  adjust.QuadPart = 11644473600000 * 10000;
-  date.QuadPart -= adjust.QuadPart;
-  return date.QuadPart / 10000000;*/
-
-  //uint64_t hunna = ftLastWriteTime.QuadPart;
-  LARGE_INTEGER temp;
+  /*ULARGE_INTEGER temp;
   temp.HighPart = ftLastWriteTime.dwHighDateTime;
   temp.LowPart = ftLastWriteTime.dwLowDateTime;
-  uint64_t hunna = temp.QuadPart;
+  uint64_t hunna = temp.QuadPart;*/
 
-  uint64_t nanoseconds = (hunna * 100) % 1000000000;
-  uint64_t milliseconds = hunna / 10000000 * 1000;
-  //uint64_t seconds = hunna / 10000000;
+  struct nanotime mtime = ftToTimespec(file_info.ftLastWriteTime);
+  struct nanotime atime = ftToTimespec(file_info.ftLastAccessTime);
+  struct nanotime ctime = ftToTimespec(file_info.ftCreationTime);
 
-  stat_object->Set(NEW_STRING("mtime"),
-      v8::BigInt::New(isolate, hunna));
-
-  /*auto seconds = ftLastAccessTime.dwHighDateTime;
-  auto nanoseconds = ftLastAccessTime.dwLowDateTime * 100;*/
-
-  /*stat_object->Set(NEW_STRING("mtimeLow"),
-      v8::BigInt::New(isolate, ftLastWriteTime.dwLowDateTime));
-  stat_object->Set(NEW_STRING("mtimeHigh"),
-      v8::BigInt::New(isolate, ftLastWriteTime.dwHighDateTime));*/
-  stat_object->Set(NEW_STRING("mtimeLow"),
-      v8::BigInt::New(isolate, nanoseconds));
-  stat_object->Set(NEW_STRING("mtimeHigh"),
-      v8::BigInt::New(isolate, seconds));
-  stat_object->Set(NEW_STRING("atimeLow"),
-      v8::BigInt::New(isolate, ftLastAccessTime.dwLowDateTime));
-  stat_object->Set(NEW_STRING("atimeHigh"),
-      v8::BigInt::New(isolate, ftLastAccessTime.dwHighDateTime));
-  stat_object->Set(NEW_STRING("ctimeLow"),
-      v8::BigInt::New(isolate, ftCreationTime.dwLowDateTime));
-  stat_object->Set(NEW_STRING("ctimeHigh"),
-      v8::BigInt::New(isolate, ftCreationTime.dwHighDateTime));
-
-  /*stat_object->Set(NEW_STRING("mtimeMs"),
-      v8::BigInt::New(isolate, mtimeMs));
+  /*uint64_t nanoseconds = (hunna * 100) % 1000000000;
+  uint64_t seconds = (hunna / 10000000) - 11644473600;
+  stat_object->Set(NEW_STRING("mtimeMs"),
+      v8::BigInt::New(isolate, toMs(seconds, nanoseconds)));
   stat_object->Set(NEW_STRING("mtimeNs"),
-      v8::BigInt::New(isolate, mtimeNs));
-  stat_object->Set(NEW_STRING("atimeMs"),
-      v8::BigInt::New(isolate, atimeMs));
-  stat_object->Set(NEW_STRING("atimeNs"),
-      v8::BigInt::New(isolate, atimeNs));
-  stat_object->Set(NEW_STRING("ctimeMs"),
-      v8::BigInt::New(isolate, ctimeMs));
-  stat_object->Set(NEW_STRING("ctimeNs"),
-      v8::BigInt::New(isolate, ctimeNs));*/
-
-  args.GetReturnValue().Set(stat_object);
+      v8::BigInt::New(isolate, nanoseconds));*/
 #else  // _WIN32
 
   struct stat stat_struct;
@@ -144,6 +101,7 @@ static void statInternal(
     //args.GetReturnValue().Set(NEW_STRING(error_string.c_str()));
     return;
   }
+#endif // _WIN32
 
   v8::Local<v8::Object> stat_object = v8::Object::New(isolate);
 #ifdef __APPLE__
@@ -155,15 +113,15 @@ static void statInternal(
   auto ctimeNs = stat_struct.st_ctimespec.tv_nsec;
   auto birthtimeS = stat_struct.st_birthtimespec.tv_sec;
   auto birthtimeNs = stat_struct.st_birthtimespec.tv_nsec;
-//#elif _WIN32
-//  auto mtimeS = stat_struct.st_mtime.tv_sec;
-//  auto mtimeNs = stat_struct.st_mtime.tv_nsec;
-//  auto atimeS = stat_struct.st_atime.tv_sec;
-//  auto atimeNs = stat_struct.st_atime.tv_nsec;
-//  auto ctimeS = stat_struct.st_ctime.tv_sec;
-//  auto ctimeNs = stat_struct.st_ctime.tv_nsec;
-//  auto birthtimeS = stat_struct.st_ctime.tv_sec;
-//  auto birthtimeNs = stat_struct.st_ctime.tv_nsec;
+#elif _WIN32
+  auto mtimeS = mtime.tv_sec;
+  auto mtimeNs = mtime.tv_nsec;
+  auto atimeS = atime.tv_sec;
+  auto atimeNs = atime.tv_nsec;
+  auto ctimeS = ctime.tv_sec;
+  auto ctimeNs = ctime.tv_nsec;
+  auto birthtimeS = ctime.tv_sec;
+  auto birthtimeNs = ctime.tv_nsec;
 #else
   auto mtimeS = stat_struct.st_mtim.tv_sec;
   auto mtimeNs = stat_struct.st_mtim.tv_nsec;
@@ -195,6 +153,17 @@ static void statInternal(
   stat_object->Set(NEW_STRING("birthtimeNs"),
       v8::BigInt::New(isolate, birthtimeNs));
 
+#ifdef _WIN32
+  // TODO
+  // DWORD dwFileAttributes = file_info.dwFileAttributes;
+
+  ULARGE_INTEGER file_size;
+  file_size.HighPart = file_info.nFileSizeHigh;
+  file_size.LowPart = file_info.nFileSizeLow;
+  stat_object->Set(NEW_STRING("size"),
+      v8::BigInt::New(isolate, file_size.QuadPart));
+
+#else  // _WIN32
   stat_object->Set(NEW_STRING("dev"),
       v8::BigInt::New(isolate, stat_struct.st_dev));
   stat_object->Set(NEW_STRING("ino"),
@@ -215,9 +184,9 @@ static void statInternal(
       v8::BigInt::New(isolate, stat_struct.st_size));
   stat_object->Set(NEW_STRING("blocks"),
       v8::BigInt::New(isolate, stat_struct.st_blocks));
+#endif  // _WIN32
 
   args.GetReturnValue().Set(stat_object);
-#endif  // _WIN32
 }
 
 static void lstatSync(
