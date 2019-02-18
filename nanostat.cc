@@ -71,13 +71,37 @@ static void statInternal(
   DWORD nFileSizeHigh = file_info.nFileSizeHigh;
   DWORD nFileSizeLow = file_info.nFileSizeLow;
 
-  auto seconds = ftLastAccessTime.dwHighDateTime;
-  auto nanoseconds = ftLastAccessTime.dwLowDateTime * 100;
+  /*LARGE_INTEGER date, adjust;
+  date.HighPart = ftLastWriteTime.dwHighDateTime;
+  date.LowPart = ftLastWriteTime.dwLowDateTime;
+  adjust.QuadPart = 11644473600000 * 10000;
+  date.QuadPart -= adjust.QuadPart;
+  return date.QuadPart / 10000000;*/
 
-  stat_object->Set(NEW_STRING("mtimeLow"),
+  //uint64_t hunna = ftLastWriteTime.QuadPart;
+  LARGE_INTEGER temp;
+  temp.HighPart = ftLastWriteTime.dwHighDateTime;
+  temp.LowPart = ftLastWriteTime.dwLowDateTime;
+  uint64_t hunna = temp.QuadPart;
+
+  uint64_t nanoseconds = (hunna * 100) % 1000000000;
+  uint64_t milliseconds = hunna / 10000000 * 1000;
+  //uint64_t seconds = hunna / 10000000;
+
+  stat_object->Set(NEW_STRING("mtime"),
+      v8::BigInt::New(isolate, hunna));
+
+  /*auto seconds = ftLastAccessTime.dwHighDateTime;
+  auto nanoseconds = ftLastAccessTime.dwLowDateTime * 100;*/
+
+  /*stat_object->Set(NEW_STRING("mtimeLow"),
       v8::BigInt::New(isolate, ftLastWriteTime.dwLowDateTime));
   stat_object->Set(NEW_STRING("mtimeHigh"),
-      v8::BigInt::New(isolate, ftLastWriteTime.dwHighDateTime));
+      v8::BigInt::New(isolate, ftLastWriteTime.dwHighDateTime));*/
+  stat_object->Set(NEW_STRING("mtimeLow"),
+      v8::BigInt::New(isolate, nanoseconds));
+  stat_object->Set(NEW_STRING("mtimeHigh"),
+      v8::BigInt::New(isolate, seconds));
   stat_object->Set(NEW_STRING("atimeLow"),
       v8::BigInt::New(isolate, ftLastAccessTime.dwLowDateTime));
   stat_object->Set(NEW_STRING("atimeHigh"),
