@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "mtime": "node mtime.js"
+  },
   "dependencies": {
     "nanostat": "file:.."
   }

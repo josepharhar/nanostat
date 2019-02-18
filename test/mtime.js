@@ -15,3 +15,11 @@ console.log('stat()ted package.json');
 console.log(`atime: ${stat.atimeHigh}.${stat.atimeLow}`);
 console.log(`ctime: ${stat.ctimeHigh}.${stat.ctimeLow}`);
 console.log(`mtime: ${stat.mtime}`);*/
+
+const seconds = Number(stat.mtimeMs / 1000n);
+const nanoseconds = Number(stat.mtimeNs);
+console.log(`epoch time (seconds.nanoseconds): ${seconds}.${nanoseconds}`);
+
+const date = new Date(Number(stat.mtimeMs));
+//date.setUTCSeconds(seconds);
+console.log(`date: ${date}`);

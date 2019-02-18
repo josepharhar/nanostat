@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#include <string.h>
 
 #ifdef _WIN32
 #include <windows.h>
