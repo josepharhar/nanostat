@@ -1,4 +1,3 @@
-//module.exports = require('./build/Release/nanostat');
 const internal = require('./build/Release/nanostat');
 
 module.exports.statSync = internal.statSync;

@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "tsc": "tsc -p .",
+    "build": "node-gyp configure && node-gyp build"
+  },
   "name": "nanostat",
   "version": "0.1.1",
   "description": "fs.stat() with nanosecond precision",
@@ -12,5 +16,9 @@
     "email": "josepharhar@gmail.com",
     "url": "https://github.com/josepharhar"
   },
-  "homepage": "https://github.com/josepharhar/nanostat"
+  "homepage": "https://github.com/josepharhar/nanostat",
+  "devDependencies": {
+    "node-gyp": "^3.8.0",
+    "typescript": "^3.3.3"
+  }
 }
