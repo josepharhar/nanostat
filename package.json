@@ -3,6 +3,7 @@
   "version": "0.1.1",
   "description": "fs.stat() with nanosecond precision",
   "main": "index.js",
+  "types": "index.d.ts",
   "repository": {
     "type": "git",
     "url": "http://github.com/josepharhar/nanostat"
@@ -20,6 +21,5 @@
   "scripts": {
     "tsc": "tsc -p .",
     "build": "node-gyp configure && node-gyp build"
-  },
-  "types": "index.d.ts"
+  }
 }
