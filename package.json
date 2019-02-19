@@ -1,8 +1,4 @@
 {
-  "scripts": {
-    "tsc": "tsc -p .",
-    "build": "node-gyp configure && node-gyp build"
-  },
   "name": "nanostat",
   "version": "0.1.1",
   "description": "fs.stat() with nanosecond precision",
@@ -20,5 +16,10 @@
   "devDependencies": {
     "node-gyp": "^3.8.0",
     "typescript": "^3.3.3"
-  }
+  },
+  "scripts": {
+    "tsc": "tsc -p .",
+    "build": "node-gyp configure && node-gyp build"
+  },
+  "types": "index.d.ts"
 }
