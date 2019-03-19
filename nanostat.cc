@@ -61,10 +61,27 @@ static void statInternal(
   WIN32_FILE_ATTRIBUTE_DATA file_info;
   DWORD retval = GetFileAttributesEx(char_filepath, GetFileExInfoStandard, &file_info);
   if (!retval) {
-    // TODO use GetLastError() to get an error string
-    // DWORD last_error = GetLastError();
-    isolate->ThrowException(v8::Exception::Error(
-          NEW_STRING("GetFileAttributesEx() failed")));
+    // https://docs.microsoft.com/en-us/windows/desktop/debug/retrieving-the-last-error-code
+    LPTSTR lpszFunction = "SetFileTime";
+    LPVOID lpMsgBuf, lpDisplayBuf;
+    DWORD dw = GetLastError();
+    FormatMessage(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+        FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL,
+        dw,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        (LPTSTR) &lpMsgBuf,
+        0, NULL );
+
+    std::string error_string = std::string("GetFileAttributesEx(\"")
+      + std::string(char_filepath)
+      + std::string("\") failed with error ")
+      + std::to_string(dw)
+      + std::string(": ")
+      + std::string((TCHAR*)lpMsgBuf);
+    isolate->ThrowException(v8::Exception::Error(NEW_STRING(error_string.c_str())));
     return;
   }
 
