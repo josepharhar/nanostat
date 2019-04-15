@@ -1,4 +1,9 @@
 {
+  "name": "jstat",
+  "main": "jstat.js",
+  "bin": {
+    "jstat": "./jstat.js"
+  },
   "scripts": {
     "jstat": "node jstat.js"
   },

@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const fs = require('fs');
 const assert = require('assert').strict;
 const util = require('util');
@@ -31,7 +33,11 @@ function tzOffsetToString(date) {
   return (addMinus ? '-' : '') + pad(Math.abs(date.getTimezoneOffset()) / 60 * 100, 4);
 }
 
-const filepath = 'package.json';
+if (process.argv.length !== 3) {
+  console.log('usage: node jstat.js filepath');
+  return;
+}
+const filepath = process.argv[2];
 
 const stat = nanostat.statSync(filepath);
 
