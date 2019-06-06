@@ -153,14 +153,20 @@ static void statInternal(
   auto atimeMs = toMs(atimeS, atimeNs);
   auto ctimeMs = toMs(ctimeS, ctimeNs);
   auto birthtimeMs = toMs(birthtimeS, birthtimeNs);
+  stat_object->Set(NEW_STRING("mtimeS"),
+      v8::BigInt::New(isolate, mtimeS));
   stat_object->Set(NEW_STRING("mtimeMs"),
       v8::BigInt::New(isolate, mtimeMs));
   stat_object->Set(NEW_STRING("mtimeNs"),
       v8::BigInt::New(isolate, mtimeNs));
+  stat_object->Set(NEW_STRING("atimeS"),
+      v8::BigInt::New(isolate, atimeS));
   stat_object->Set(NEW_STRING("atimeMs"),
       v8::BigInt::New(isolate, atimeMs));
   stat_object->Set(NEW_STRING("atimeNs"),
       v8::BigInt::New(isolate, atimeNs));
+  stat_object->Set(NEW_STRING("ctimeS"),
+      v8::BigInt::New(isolate, ctimeS));
   stat_object->Set(NEW_STRING("ctimeMs"),
       v8::BigInt::New(isolate, ctimeMs));
   stat_object->Set(NEW_STRING("ctimeNs"),
