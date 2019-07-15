@@ -55,11 +55,15 @@ static void statInternal(
   }
   v8::Local<v8::String> filepath = v8::Local<v8::String>::Cast(args[0]);
   v8::String::Utf8Value utf8_filepath(isolate, filepath);
-  char* char_filepath = *utf8_filepath;
+  char* utf8_char_filepath = *utf8_filepath;
 
 #ifdef _WIN32
   WIN32_FILE_ATTRIBUTE_DATA file_info;
-  DWORD retval = GetFileAttributesEx(char_filepath, GetFileExInfoStandard, &file_info);
+  int wchars_num = MultiByteToWideChar(CP_UTF8, 0, utf8_char_filepath, -1, NULL, 0);
+  std::vector<wchar_t> wstr;
+  wstr.reserve(wchars_num);
+  MultiByteToWideChar(CP_UTF8, 0, utf8_char_filepath, -1, wstr.data(), wchars_num);
+  DWORD retval = GetFileAttributesExW(wstr.data(), GetFileExInfoStandard, &file_info);
   if (!retval) {
     // https://docs.microsoft.com/en-us/windows/desktop/debug/retrieving-the-last-error-code
     LPTSTR lpszFunction = "SetFileTime";
@@ -76,7 +80,7 @@ static void statInternal(
         0, NULL );
 
     std::string error_string = std::string("GetFileAttributesEx(\"")
-      + std::string(char_filepath)
+      + std::string(utf8_char_filepath)
       + std::string("\") failed with error ")
       + std::to_string(dw)
       + std::string(": ")
@@ -106,9 +110,9 @@ static void statInternal(
   memset(&stat_struct, 0, sizeof(struct stat));
   int stat_retval = -1;
   if (follow_symlinks) {
-    stat_retval = lstat(char_filepath, &stat_struct);
+    stat_retval = lstat(utf8_char_filepath, &stat_struct);
   } else {
-    stat_retval = stat(char_filepath, &stat_struct);
+    stat_retval = stat(utf8_char_filepath, &stat_struct);
   }
   if (stat_retval) {
     std::string error_string =
