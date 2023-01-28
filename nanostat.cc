@@ -158,47 +158,47 @@ static void statInternal(
   auto ctimeMs = toMs(ctimeS, ctimeNs);
   auto birthtimeMs = toMs(birthtimeS, birthtimeNs);
   stat_object->Set(
-      stat_object->CreationContext(),
+      isolate->GetCurrentContext(),
       NEW_STRING("mtimeS"),
       v8::BigInt::New(isolate, mtimeS));
   stat_object->Set(
-      stat_object->CreationContext(),
+      isolate->GetCurrentContext(),
       NEW_STRING("mtimeMs"),
       v8::BigInt::New(isolate, mtimeMs));
   stat_object->Set(
-      stat_object->CreationContext(),
+      isolate->GetCurrentContext(),
       NEW_STRING("mtimeNs"),
       v8::BigInt::New(isolate, mtimeNs));
   stat_object->Set(
-      stat_object->CreationContext(),
+      isolate->GetCurrentContext(),
       NEW_STRING("atimeS"),
       v8::BigInt::New(isolate, atimeS));
   stat_object->Set(
-      stat_object->CreationContext(),
+      isolate->GetCurrentContext(),
       NEW_STRING("atimeMs"),
       v8::BigInt::New(isolate, atimeMs));
   stat_object->Set(
-      stat_object->CreationContext(),
+      isolate->GetCurrentContext(),
       NEW_STRING("atimeNs"),
       v8::BigInt::New(isolate, atimeNs));
   stat_object->Set(
-      stat_object->CreationContext(),
+      isolate->GetCurrentContext(),
       NEW_STRING("ctimeS"),
       v8::BigInt::New(isolate, ctimeS));
   stat_object->Set(
-      stat_object->CreationContext(),
+      isolate->GetCurrentContext(),
       NEW_STRING("ctimeMs"),
       v8::BigInt::New(isolate, ctimeMs));
   stat_object->Set(
-      stat_object->CreationContext(),
+      isolate->GetCurrentContext(),
       NEW_STRING("ctimeNs"),
       v8::BigInt::New(isolate, ctimeNs));
   stat_object->Set(
-      stat_object->CreationContext(),
+      isolate->GetCurrentContext(),
       NEW_STRING("birthtimeMs"),
       v8::BigInt::New(isolate, birthtimeMs));
   stat_object->Set(
-      stat_object->CreationContext(),
+      isolate->GetCurrentContext(),
       NEW_STRING("birthtimeNs"),
       v8::BigInt::New(isolate, birthtimeNs));
 
@@ -210,49 +210,49 @@ static void statInternal(
   file_size.HighPart = file_info.nFileSizeHigh;
   file_size.LowPart = file_info.nFileSizeLow;
   stat_object->Set(
-      stat_object->CreationContext(),
+      isolate->GetCurrentContext(),
       NEW_STRING("size"),
       v8::BigInt::New(isolate, file_size.QuadPart));
 
 #else  // _WIN32
   stat_object->Set(
-      stat_object->CreationContext(),
+      isolate->GetCurrentContext(),
       NEW_STRING("dev"),
       v8::BigInt::New(isolate, stat_struct.st_dev));
   stat_object->Set(
-      stat_object->CreationContext(),
+      isolate->GetCurrentContext(),
       NEW_STRING("ino"),
       v8::BigInt::New(isolate, stat_struct.st_ino));
   stat_object->Set(
-      stat_object->CreationContext(),
+      isolate->GetCurrentContext(),
       NEW_STRING("mode"),
       v8::BigInt::New(isolate, stat_struct.st_mode));
   stat_object->Set(
-      stat_object->CreationContext(),
+      isolate->GetCurrentContext(),
       NEW_STRING("nlink"),
       v8::BigInt::New(isolate, stat_struct.st_nlink));
   stat_object->Set(
-      stat_object->CreationContext(),
+      isolate->GetCurrentContext(),
       NEW_STRING("uid"),
       v8::BigInt::New(isolate, stat_struct.st_uid));
   stat_object->Set(
-      stat_object->CreationContext(),
+      isolate->GetCurrentContext(),
       NEW_STRING("gid"),
       v8::BigInt::New(isolate, stat_struct.st_gid));
   stat_object->Set(
-      stat_object->CreationContext(),
+      isolate->GetCurrentContext(),
       NEW_STRING("rdev"),
       v8::BigInt::New(isolate, stat_struct.st_rdev));
   stat_object->Set(
-      stat_object->CreationContext(),
+      isolate->GetCurrentContext(),
       NEW_STRING("blksize"),
       v8::BigInt::New(isolate, stat_struct.st_blksize));
   stat_object->Set(
-      stat_object->CreationContext(),
+      isolate->GetCurrentContext(),
       NEW_STRING("size"),
       v8::BigInt::New(isolate, stat_struct.st_size));
   stat_object->Set(
-      stat_object->CreationContext(),
+      isolate->GetCurrentContext(),
       NEW_STRING("blocks"),
       v8::BigInt::New(isolate, stat_struct.st_blocks));
 #endif  // _WIN32
