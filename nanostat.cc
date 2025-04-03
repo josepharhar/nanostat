@@ -66,8 +66,7 @@ static void statInternal(
   DWORD retval = GetFileAttributesExW(wstr.data(), GetFileExInfoStandard, &file_info);
   if (!retval) {
     // https://docs.microsoft.com/en-us/windows/desktop/debug/retrieving-the-last-error-code
-    LPTSTR lpszFunction = "SetFileTime";
-    LPVOID lpMsgBuf, lpDisplayBuf;
+    LPVOID lpMsgBuf;
     DWORD dw = GetLastError();
     FormatMessage(
         FORMAT_MESSAGE_ALLOCATE_BUFFER | 
