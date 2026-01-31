@@ -15,7 +15,7 @@
   },
   "homepage": "https://github.com/josepharhar/nanostat",
   "devDependencies": {
-    "node-gyp": "^11.2.0",
+    "node-gyp": "^12.2.0",
     "typescript": "^3.3.3"
   },
   "scripts": {
