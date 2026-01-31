@@ -16,7 +16,7 @@
   "homepage": "https://github.com/josepharhar/nanostat",
   "devDependencies": {
     "node-gyp": "^12.2.0",
-    "typescript": "^3.3.3"
+    "typescript": "^5.9.3"
   },
   "scripts": {
     "tsc": "tsc -p .",
